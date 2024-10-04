@@ -1,0 +1,122 @@
+name: Docker Image Build and Push
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      main
+env:
+  TAGS: |
+    type=sha,format=long
+    type=raw,value=latest,enable=${{ github.ref == format('refs/heads/{0}', 'main') }}
+concurrency:
+  group: ${{ github.ref_name }}
+  cancel-in-progress: true
+jobs:
+  buildx:
+    runs-on:
+      - self-hosted
+      - ${{ matrix.platform }}
+    strategy:
+      fail-fast: false
+      matrix:
+        platform:
+          - linux/amd64
+          - linux/arm64
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - name: Set PLATFORM_PAIR
+        run: |
+          platform=${{ matrix.platform }}
+          echo "PLATFORM_PAIR=${platform//\//-}" >> $GITHUB_ENV      
+      - name: Set lower case owner name
+        run: |
+          echo "OWNER_LC=${OWNER,,}" >>${GITHUB_ENV}
+        env:
+          OWNER: '${{ github.repository_owner }}'
+      - name: Set lower case repo name
+        run: |
+          echo "REPO_LC=${REPO,,}" >>${GITHUB_ENV}
+        env:
+          REPO: ghcr.io/${{ github.repository }}
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ env.OWNER_LC }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Setup QEMU
+        uses: docker/setup-qemu-action@v3
+      - name: Setup Docker Buildx
+        uses: docker/setup-buildx-action@v3
+      - name: Extract docker metadata
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.REPO_LC }}
+          tags: ${{ env.TAGS }}
+      - name: Build image and push (by digest)
+        id: build
+        uses: docker/build-push-action@v5
+        with:
+          platforms: ${{ matrix.platform }}
+          file: Dockerfile.prod
+          labels: ${{ steps.meta.outputs.labels }}
+          outputs: type=image,name=${{ env.REPO_LC }},push-by-digest=true,name-canonical=true,push=true
+      - name: Export digest
+        run: |
+          rm -rf ./digests
+          mkdir -p ./digests
+          digest="${{ steps.build.outputs.digest }}"
+          touch "./digests/${digest#sha256:}"          
+      - name: Upload digest
+        uses: actions/upload-artifact@v4
+        with:
+          name: digests-${{ env.PLATFORM_PAIR }}
+          path: ./digests/*
+          if-no-files-found: error
+          retention-days: 1
+  merge:
+    permissions:
+      packages: write
+    runs-on: [self-hosted, Linux]
+    needs:
+      - buildx
+    steps:
+      - name: Set lower case owner name and cleanup
+        run: |
+          echo "OWNER_LC=${OWNER,,}" >>${GITHUB_ENV}
+          rm -rf ./digests
+        env:
+          OWNER: '${{ github.repository_owner }}'
+      - name: Set lower case repo name
+        run: |
+          echo "REPO_LC=${REPO,,}" >>${GITHUB_ENV}
+        env:
+          REPO: ghcr.io/${{ github.repository }}
+      - name: Download digests
+        uses: actions/download-artifact@v4
+        with:
+          path: ./digests
+          pattern: digests-*
+          merge-multiple: true
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+      - name: Docker meta
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          tags: ${{ env.TAGS }}
+          images: ${{ env.REPO_LC }}
+      - name: Login to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ env.OWNER_LC }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Create manifest list and push
+        working-directory: ./digests
+        run: |
+          docker buildx imagetools create $(jq -cr '.tags | map("-t " + .) | join(" ")' <<< "$DOCKER_METADATA_OUTPUT_JSON") \
+            $(printf '${{ env.REPO_LC }}@sha256:%s ' *)

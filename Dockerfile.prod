@@ -1,0 +1,32 @@
+FROM python:3.11-slim AS gen_requirementstxt
+
+WORKDIR /usr/src/app/server
+RUN pip install --no-cache-dir --upgrade poetry wheel
+COPY ./server/pyproject.toml .
+COPY ./server/poetry.lock .
+RUN poetry export --output /requirements.txt --without dev --with postgres
+
+FROM python:3.11-slim AS server-build
+
+WORKDIR /usr/src/app/server
+ENV PYTHONUSERBASE=/usr/src/app/server/__pypackages__
+COPY --from=gen_requirementstxt /requirements.txt /
+RUN pip install --user -r /requirements.txt && \
+    pip install --user gunicorn
+COPY ./server/ .
+
+FROM node:18-slim AS client-build
+
+WORKDIR /app/client
+COPY ./client/ .
+RUN yarn install --frozen-lockfile && yarn build 
+
+FROM marusoftwaremaruos/distroless-tar:python3-debian12 as prod
+
+COPY --from=server-build --chown=nonroot:nonroot /usr/src/app/server/ /app/
+COPY --from=client-build --chown=nonroot:nonroot /app/client/build/ /app/static/
+EXPOSE 8000
+WORKDIR /app
+ENV PYTHONUSERBASE=/app/__pypackages__
+ENV SERVE_STATIC=/app/static/
+CMD ["-m", "gunicorn", "-k", "uvicorn.workers.UvicornWorker", "--bind", "0.0.0.0:8000", "--access-logfile", "-", "changeme:app"]
