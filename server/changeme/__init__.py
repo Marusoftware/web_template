@@ -50,8 +50,8 @@ if settings.SERVE_STATIC is not None:
         full_path = os.path.normpath(f"{settings.SERVE_STATIC}/{full_path}")
         if not full_path.startswith(settings.SERVE_STATIC):
             raise Forbidden(status_code=403, detail="Forbidden")
-        if os.path.exists(f"{settings.SERVE_STATIC}/"+full_path):
-            return FileResponse(f"{settings.SERVE_STATIC}/"+full_path)
+        if os.path.exists(full_path):
+            return FileResponse(full_path)
         else:
             return HTMLResponse(index)
 
