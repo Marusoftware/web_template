@@ -19,7 +19,7 @@ passlib = "^1.7.4"
 python-multipart = "^0.0.12"
 
 [tool.poetry.group.dev.dependencies]
-fastapi = {extras = ["dev"], version = "^0.115.0"}
+fastapi = {extras = ["dev"], version = "^0.115.3"}
 watchfiles = "^0.24.0"
 tortoise-cli = "^0.1.2"
 
