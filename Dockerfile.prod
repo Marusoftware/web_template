@@ -21,7 +21,7 @@ WORKDIR /app/client
 COPY ./client/ .
 RUN yarn install --frozen-lockfile && yarn build 
 
-FROM gcr.io/distroless/python3-debian12 as prod
+FROM gcr.io/distroless/python3-debian12 AS prod
 
 COPY --from=server-build --chown=nonroot:nonroot /usr/src/app/server/ /app/
 COPY --from=client-build --chown=nonroot:nonroot /app/client/build/ /app/static/
