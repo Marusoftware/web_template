@@ -1,7 +1,7 @@
 FROM python:3.11-slim AS gen_requirementstxt
 
 WORKDIR /usr/src/app/server
-RUN pip install --no-cache-dir --upgrade poetry wheel
+RUN pip install --no-cache-dir --upgrade poetry wheel poetry-plugin-export
 COPY ./server/pyproject.toml .
 COPY ./server/poetry.lock .
 RUN poetry export --output /requirements.txt --without dev --with postgres
