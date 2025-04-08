@@ -1,4 +1,4 @@
-FROM python:3.10.9-slim
+FROM python:3.11-slim
 
 WORKDIR /usr/src/app/server
 COPY ./docker-entrypoint.sh /usr/local/bin/docker-entrypoint.sh
