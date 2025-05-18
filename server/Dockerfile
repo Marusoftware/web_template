@@ -2,7 +2,7 @@ FROM python:3.11-slim
 
 WORKDIR /usr/src/app/server
 COPY ./docker-entrypoint.sh /usr/local/bin/docker-entrypoint.sh
-RUN adduser --system --shell /bin/bash nonroot && \
+RUN adduser --system --shell /bin/bash nonroot --home /home/nonroot/ && \
     pip install --no-cache-dir --upgrade poetry wheel pysu && \
     chmod +rx /usr/local/bin/docker-entrypoint.sh
 
