@@ -1,11 +1,21 @@
-from fastapi import FastAPI, APIRouter, HTTPException, Request
+from fastapi import FastAPI, HTTPException, Request
 from fastapi.responses import FileResponse, HTMLResponse
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.routing import APIRoute
+import contextlib
 
 from .exceptions import APIError, Forbidden, NotFound
 from .config import Settings
 
-def custom_generate_unique_id(route: APIRouter):
+from tortoise.contrib.fastapi import RegisterTortoise
+from .db import DB_CONFIG
+
+@contextlib.asynccontextmanager
+async def lifespan(app: FastAPI):
+    async with RegisterTortoise(app, config=DB_CONFIG, use_tz=True, timezone=settings.TZ):
+        yield
+
+def custom_generate_unique_id(route: APIRoute):
     return f"{f'{route.tags[0]}-'if len(route.tags) else ''}{route.name}"
 
 app = FastAPI(
@@ -48,12 +58,9 @@ if settings.SERVE_STATIC is not None:
     async def spa(full_path:str):
         if full_path=="": full_path="index.html"
         full_path = os.path.normpath(f"{settings.SERVE_STATIC}/{full_path}")
-        if not full_path.startswith(settings.SERVE_STATIC):
+        if not full_path.startswith(settings.SERVE_STATIC): # type: ignore
             raise Forbidden(status_code=403, detail="Forbidden")
         if os.path.exists(full_path):
             return FileResponse(full_path)
         else:
             return HTMLResponse(index)
-
-from .db import register_db
-register_db(app)
