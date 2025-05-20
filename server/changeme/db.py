@@ -14,6 +14,3 @@ DB_CONFIG={
         },
     },
 }
-
-def register_db(app:FastAPI):
-    register_tortoise(app=app, config=DB_CONFIG)
