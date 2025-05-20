@@ -1,4 +1,5 @@
 # Marusoftware Web Template
+## Overview
 This is template of Web App project in Marusoftware.
 Consisted with these components/concepts:
 
@@ -16,3 +17,6 @@ UI: flowbite-svelte(tailwind CSS available)
 API client: openapi-ts
 - db   
 postgresql(over 5.0)
+
+## Usage
+Please see [Wiki](https://github.com/Marusoftware/web_template/wiki)
