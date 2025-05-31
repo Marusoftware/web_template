@@ -26,7 +26,8 @@ app = FastAPI(
     generate_unique_id_function=custom_generate_unique_id,
     responses={400: {"model": APIError}, 
                401: {"model": Forbidden},
-               404: {"model": NotFound}}
+               404: {"model": NotFound}},
+    lifespan=lifespan
 )
 
 @app.exception_handler(APIError)
