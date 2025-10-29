@@ -5,10 +5,11 @@ description = "changeme"
 authors = ["Changeme <changeme@marusoftware.net>"]
 license = "MIT"
 readme = "README.md"
+package-mode = false
 
 [tool.poetry.dependencies]
 python = "^3.10.0"
-fastapi = "^0.115.3"
+fastapi = "^0.120.1"
 tortoise-orm = "^0.21.6"
 pydantic = {extras = ["email"], version = "^2.9.2"}
 pydantic-settings = "^2.5.2"
@@ -19,7 +20,7 @@ passlib = "^1.7.4"
 python-multipart = "^0.0.18"
 
 [tool.poetry.group.dev.dependencies]
-fastapi = {extras = ["dev"], version = "^0.115.3"}
+fastapi = {extras = ["dev"], version = "^0.120.1"}
 watchfiles = "^0.24.0"
 tortoise-cli = "^0.1.2"
 
