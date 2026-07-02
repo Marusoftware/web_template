@@ -13,7 +13,7 @@
 		"openapi": "openapi-ts -i http://server:8000/api/v1/openapi.json -o ./src/lib/openapi -c fetch"
 	},
 	"devDependencies": {
-		"@hey-api/openapi-ts": "^0.34.5",
+		"@hey-api/openapi-ts": "^0.97.3",
 		"@sveltejs/adapter-static": "^3.0.1",
 		"@sveltejs/kit": "^2.60.1",
 		"@sveltejs/vite-plugin-svelte": "^3.0.0",
