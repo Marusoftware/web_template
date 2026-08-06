@@ -15,7 +15,7 @@
 	"devDependencies": {
 		"@hey-api/openapi-ts": "^0.97.3",
 		"@sveltejs/adapter-static": "^3.0.1",
-		"@sveltejs/kit": "^2.60.1",
+		"@sveltejs/kit": "^2.69.1",
 		"@sveltejs/vite-plugin-svelte": "^3.0.0",
 		"autoprefixer": "^10.4.16",
 		"flowbite": "^2.3.0",
